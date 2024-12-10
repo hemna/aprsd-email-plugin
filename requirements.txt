@@ -1,0 +1,2 @@
+aprsd>=3.4.4
+oslo_config
