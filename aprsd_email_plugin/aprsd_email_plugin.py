@@ -8,13 +8,14 @@ import smtplib
 import threading
 import time
 
-import imapclient
-from oslo_config import cfg
-
 from aprsd import packets, plugin, threads, utils
 from aprsd.stats import collector
 from aprsd.threads import tx
 from aprsd.utils import trace
+import imapclient
+from oslo_config import cfg
+
+from aprsd_email_plugin import conf  # noqa
 
 
 CONF = cfg.CONF
@@ -70,18 +71,17 @@ class EmailStats:
     email_thread_last_time = None
 
     def stats(self, serializable=False):
-        if CONF.email_plugin.enabled:
+        if CONF.aprsd_email_plugin.enabled:
             last_check_time = self.email_thread_last_time
             if serializable and last_check_time:
                 last_check_time = last_check_time.isoformat()
-            stats = {
+            return {
                 "tx": self.tx,
                 "rx": self.rx,
                 "last_check_time": last_check_time,
             }
         else:
-            stats = {}
-        return stats
+            return {}
 
     def tx_inc(self):
         self.tx += 1
@@ -107,21 +107,21 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
 
     def setup(self):
         """Ensure that email is enabled and start the thread."""
-        if CONF.email_plugin.enabled:
+        if CONF.aprsd_email_plugin.enabled:
             self.enabled = True
 
-            if not CONF.email_plugin.callsign:
+            if not CONF.aprsd_email_plugin.callsign:
                 self.enabled = False
-                LOG.error("email_plugin.callsign is not set.")
+                LOG.error("aprsd_email_plugin.callsign is not set.")
                 return
 
-            if not CONF.email_plugin.imap_login:
-                LOG.error("email_plugin.imap_login not set. Disabling Plugin")
+            if not CONF.aprsd_email_plugin.imap_login:
+                LOG.error("aprsd_email_plugin.imap_login not set. Disabling Plugin")
                 self.enabled = False
                 return
 
-            if not CONF.email_plugin.smtp_login:
-                LOG.error("email_plugin.smtp_login not set. Disabling Plugin")
+            if not CONF.aprsd_email_plugin.smtp_login:
+                LOG.error("aprsd_email_plugin.smtp_login not set. Disabling Plugin")
                 self.enabled = False
                 return
 
@@ -135,6 +135,24 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
         else:
             LOG.info("Email services not enabled.")
             self.enabled = False
+
+        self._setup_logging()
+
+    def _setup_logging(self):
+        imap_list = [
+            "imapclient.imaplib", "imaplib", "imapclient",
+            "imapclient.util",
+        ]
+
+        if CONF.aprsd_email_plugin.enabled and CONF.aprsd_email_plugin.debug:
+            LOG.info("enabling email logging")
+            for name in imap_list:
+                logging.getLogger(name).propagate = True
+        else:
+            LOG.info("Disabling email items for logging.")
+            for name in logging.root.manager.loggerDict.keys():
+                logging.getLogger(name).handlers = []
+                logging.getLogger(name).propagate = name not in imap_list
 
     def create_threads(self):
         if self.enabled:
@@ -153,11 +171,11 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
         ack = packet.get("msgNo", "0")
 
         reply = None
-        if not CONF.email_plugin.enabled:
+        if not CONF.aprsd_email_plugin.enabled:
             LOG.debug("Email is not enabled in config file ignoring.")
             return "Email not enabled."
 
-        searchstring = "^" + CONF.email_plugin.callsign + ".*"
+        searchstring = "^" + CONF.aprsd_email_plugin.callsign + ".*"
         # only I can do email
         if re.search(searchstring, fromcall):
             # digits only, first one is number of emails to resend
@@ -184,7 +202,7 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
                         content = (
                             "Click for my location: http://aprs.fi/{}" ""
                         ).format(
-                            CONF.email_plugin.callsign,
+                            CONF.aprsd_email_plugin.callsign,
                         )
                     too_soon = 0
                     now = time.time()
@@ -226,12 +244,12 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
 
 
 def _imap_connect():
-    imap_port = CONF.email_plugin.imap_port
-    use_ssl = CONF.email_plugin.imap_use_ssl
+    imap_port = CONF.aprsd_email_plugin.imap_port
+    use_ssl = CONF.aprsd_email_plugin.imap_use_ssl
 
     try:
         server = imapclient.IMAPClient(
-            CONF.email_plugin.imap_host,
+            CONF.aprsd_email_plugin.imap_host,
             port=imap_port,
             use_uid=True,
             ssl=use_ssl,
@@ -243,8 +261,8 @@ def _imap_connect():
 
     try:
         server.login(
-            CONF.email_plugin.imap_login,
-            CONF.email_plugin.imap_password,
+            CONF.aprsd_email_plugin.imap_login,
+            CONF.aprsd_email_plugin.imap_password,
         )
     except (imaplib.IMAP4.error, Exception) as e:
         msg = getattr(e, "message", repr(e))
@@ -261,15 +279,12 @@ def _imap_connect():
 
 
 def _smtp_connect():
-    host = CONF.email_plugin.smtp_host
-    smtp_port = CONF.email_plugin.smtp_port
-    use_ssl = CONF.email_plugin.smtp_use_ssl
-    msg = "{}{}:{}".format("SSL " if use_ssl else "", host, smtp_port)
+    host = CONF.aprsd_email_plugin.smtp_host
+    smtp_port = CONF.aprsd_email_plugin.smtp_port
+    use_ssl = CONF.aprsd_email_plugin.smtp_use_ssl
+    msg = f'{"SSL " if use_ssl else ""}{host}:{smtp_port}'
     LOG.debug(
-        "Connect to SMTP host {} with user '{}'".format(
-            msg,
-            CONF.email_plugin.smtp_login,
-        ),
+        f"Connect to SMTP host {msg} with user '{CONF.aprsd_email_plugin.smtp_login}'",
     )
 
     try:
@@ -291,15 +306,15 @@ def _smtp_connect():
 
     LOG.debug(f"Connected to smtp host {msg}")
 
-    debug = CONF.email_plugin.debug
+    debug = CONF.aprsd_email_plugin.debug
     if debug:
         server.set_debuglevel(5)
         server.sendmail = trace.trace(server.sendmail)
 
     try:
         server.login(
-            CONF.email_plugin.smtp_login,
-            CONF.email_plugin.smtp_password,
+            CONF.aprsd_email_plugin.smtp_login,
+            CONF.aprsd_email_plugin.smtp_password,
         )
     except Exception:
         LOG.error("Couldn't connect to SMTP Server")
@@ -312,9 +327,9 @@ def _smtp_connect():
 def _build_shortcuts_dict():
     global shortcuts_dict
     if not shortcuts_dict:
-        if CONF.email_plugin.email_shortcuts:
+        if CONF.aprsd_email_plugin.email_shortcuts:
             shortcuts_dict = {}
-            tmp = CONF.email_plugin.email_shortcuts
+            tmp = CONF.aprsd_email_plugin.email_shortcuts
             for combo in tmp:
                 entry = combo.split("=")
                 shortcuts_dict[entry[0]] = entry[1]
@@ -325,12 +340,11 @@ def _build_shortcuts_dict():
 
 
 def get_email_from_shortcut(addr):
-    if CONF.email_plugin.email_shortcuts:
-        shortcuts = _build_shortcuts_dict()
-        LOG.info(f"Shortcut lookup {addr} returns {shortcuts.get(addr, addr)}")
-        return shortcuts.get(addr, addr)
-    else:
+    if not CONF.aprsd_email_plugin.email_shortcuts:
         return addr
+    shortcuts = _build_shortcuts_dict()
+    LOG.info(f"Shortcut lookup {addr} returns {shortcuts.get(addr, addr)}")
+    return shortcuts.get(addr, addr)
 
 
 def validate_email_config(disable_validation=False):
@@ -454,7 +468,7 @@ def send_email(to_addr, content):
         LOG.info(f"To          : {to_addr}")
         to_addr = email_address
         LOG.info(f" ({to_addr})")
-    subject = CONF.email_plugin.callsign
+    subject = CONF.aprsd_email_plugin.callsign
     # content = content + "\n\n(NOTE: reply with one line)"
     LOG.info(f"Subject     : {subject}")
     LOG.info(f"Body        : {content}")
@@ -464,13 +478,13 @@ def send_email(to_addr, content):
 
     msg = MIMEText(content)
     msg["Subject"] = subject
-    msg["From"] = CONF.email_plugin.smtp_login
+    msg["From"] = CONF.aprsd_email_plugin.smtp_login
     msg["To"] = to_addr
     server = _smtp_connect()
     if server:
         try:
             server.sendmail(
-                CONF.email_plugin.smtp_login,
+                CONF.aprsd_email_plugin.smtp_login,
                 [to_addr],
                 msg.as_string(),
             )
@@ -680,7 +694,7 @@ class APRSDEmailThread(threads.APRSDThread):
                     tx.send(
                         packets.MessagePacket(
                             from_call=CONF.callsign,
-                            to_call=CONF.email_plugin.callsign,
+                            to_call=CONF.aprsd_email_plugin.callsign,
                             message_text=reply,
                         ),
                     )

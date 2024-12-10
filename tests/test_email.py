@@ -1,9 +1,8 @@
 import unittest
 
-from oslo_config import cfg
-
 from aprsd import conf  # noqa: F401
 from aprsd.plugins import email
+from oslo_config import cfg
 
 
 CONF = cfg.CONF
