@@ -1,25 +1,26 @@
 import datetime
 import email
-from email.mime.text import MIMEText
 import imaplib
 import logging
 import re
 import smtplib
 import threading
 import time
+from email.mime.text import MIMEText
 
+import imapclient
 from aprsd import packets, plugin, threads, utils
 from aprsd.stats import collector
-from aprsd.threads import tx
+from aprsd.threads import keepalive_collector, tx
 from aprsd.utils import trace
-import imapclient
+from loguru import logger
 from oslo_config import cfg
 
 from aprsd_email_plugin import conf  # noqa
 
-
 CONF = cfg.CONF
 LOG = logging.getLogger("APRSD")
+LOGU = logger
 shortcuts_dict = None
 
 
@@ -65,6 +66,7 @@ class EmailInfo:
 @utils.singleton
 class EmailStats:
     """Singleton object to store stats related to email."""
+
     _instance = None
     tx = 0
     rx = 0
@@ -91,6 +93,24 @@ class EmailStats:
 
     def email_thread_update(self):
         self.email_thread_last_time = datetime.datetime.now()
+
+    def keepalive_check(self):
+        pass
+
+    def keepalive_log(self):
+        now = datetime.datetime.now()
+        stats_json = self.stats()
+        if "EmailStats" in stats_json:
+            email_stats = stats_json["EmailStats"]
+            if email_stats.get("last_check_time"):
+                email_thread_time = utils.strfdelta(
+                    now - email_stats["last_check_time"]
+                )
+            else:
+                email_thread_time = "N/A"
+        else:
+            email_thread_time = "N/A"
+        LOGU.opt(colors=True).info(f"<green>Email {email_thread_time}</green>")
 
 
 class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
@@ -132,6 +152,8 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
             # We do this here to prevent EmailStats from being registered
             # when email is not enabled in the config file.
             collector.Collector().register_producer(EmailStats)
+            # Register ourself for the Keepalive logging
+            keepalive_collector.KeepAliveCollector().register(EmailStats)
         else:
             LOG.info("Email services not enabled.")
             self.enabled = False
@@ -140,7 +162,9 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
 
     def _setup_logging(self):
         imap_list = [
-            "imapclient.imaplib", "imaplib", "imapclient",
+            "imapclient.imaplib",
+            "imaplib",
+            "imapclient",
             "imapclient.util",
         ]
 
