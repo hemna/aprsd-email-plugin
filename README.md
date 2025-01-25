@@ -21,6 +21,39 @@
 
 -   This is a plugin for the `APRSD` python project that allows a Ham radio operator to send and recieve email over APRS!
 
+
+### SEND EMAIL (radio to smtp server)
+
+    Received message______________
+    Raw         : KM6XXX>APY400,WIDE1-1,qAO,KM6XXX-1::KM6XXX-9 :-user@host.com test new shortcuts global, radio to pc{29
+    From        : KM6XXX
+    Message     : -user@host.com test new shortcuts global, radio to pc
+    Msg number  : 29
+
+    Sending Email_________________
+    To          : user@host.com
+    Subject     : KM6XXX
+    Body        : test new shortcuts global, radio to pc
+
+    Sending ack __________________ Tx(3)
+    Raw         : KM6XXX-9>APRS::KM6XXX   :ack29
+    To          : KM6XXX
+    Ack number  : 29
+
+### RECEIVE EMAIL (imap server to radio)
+
+    Sending message_______________ 6(Tx3)
+    Raw         : KM6XXX-9>APRS::KM6XXX   :-somebody@gmail.com email from internet to radio{6
+    To          : KM6XXX
+    Message     : -somebody@gmail.com email from internet to radio
+
+    Received message______________
+    Raw         : KM6XXX>APY400,WIDE1-1,qAO,KM6XXX-1::KM6XXX-9 :ack6
+    From        : KM6XXX
+    Message     : ack6
+    Msg number  : 0
+
+
 ## Requirements
 
 -   APRSD

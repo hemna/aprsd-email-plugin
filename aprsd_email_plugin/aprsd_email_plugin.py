@@ -11,8 +11,8 @@ from email.mime.text import MIMEText
 import imapclient
 from aprsd import packets, plugin, threads, utils
 from aprsd.stats import collector
-from aprsd.threads import keepalive_collector, tx
-from aprsd.utils import trace
+from aprsd.threads import tx
+from aprsd.utils import keepalive_collector, trace
 from loguru import logger
 from oslo_config import cfg
 
