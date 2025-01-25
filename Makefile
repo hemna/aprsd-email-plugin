@@ -68,3 +68,11 @@ check: dev ## Code format check with tox and pep8
 
 fix: dev ## fixes code formatting with gray
 	tox -efmt
+
+update-requirements: dev  ## Update the requirements.txt and dev-requirements.txt files
+	rm requirements.txt
+	rm requirements-dev.txt
+	touch requirements.txt
+	touch requirements-dev.txt
+	$(VENV)/pip-compile --resolver backtracking --annotation-style=line requirements.in
+	$(VENV)/pip-compile --resolver backtracking --annotation-style=line requirements-dev.in
