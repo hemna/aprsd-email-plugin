@@ -160,6 +160,11 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
 
         self._setup_logging()
 
+        result = validate_email_config()
+        if not result:
+            LOG.error("Email services not enabled. Please check your config.")
+            self.enabled = False
+
     def _setup_logging(self):
         imap_list = [
             "imapclient.imaplib",
