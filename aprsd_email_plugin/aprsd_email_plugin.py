@@ -329,8 +329,9 @@ def _smtp_connect():
                 port=smtp_port,
                 timeout=30,
             )
-    except Exception:
+    except Exception as ex:
         LOG.error("Couldn't connect to SMTP Server")
+        LOG.error(f"Error: {ex}")
         return
 
     LOG.debug(f"Connected to smtp host {msg}")
@@ -345,8 +346,9 @@ def _smtp_connect():
             CONF.aprsd_email_plugin.smtp_login,
             CONF.aprsd_email_plugin.smtp_password,
         )
-    except Exception:
-        LOG.error("Couldn't connect to SMTP Server")
+    except Exception as ex:
+        LOG.error("Couldn't login to SMTP Server")
+        LOG.error(f"Error: {ex}")
         return
 
     LOG.debug(f"Logged into SMTP server {msg}")
