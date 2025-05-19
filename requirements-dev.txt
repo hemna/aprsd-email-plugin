@@ -16,6 +16,8 @@ cachetools==5.5.1
     # via tox
 certifi==2024.12.14
     # via requests
+cffi==1.17.1
+    # via cryptography
 chardet==5.2.0
     # via tox
 charset-normalizer==3.4.1
@@ -26,6 +28,8 @@ colorama==0.4.6
     # via tox
 coverage==7.6.10
     # via -r requirements-dev.in
+cryptography==45.0.2
+    # via secretstorage
 distlib==0.3.9
     # via virtualenv
 docutils==0.21.2
@@ -54,6 +58,10 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.1.0
     # via keyring
+jeepney==0.9.0
+    # via
+    #   keyring
+    #   secretstorage
 jinja2==3.1.5
     # via sphinx
 keyring==25.6.0
@@ -80,10 +88,6 @@ packaging==24.2
     #   sphinx
     #   tox
     #   twine
-pip==24.3.1
-    # via
-    #   -r requirements-dev.in
-    #   pip-tools
 pip-tools==7.4.1
     # via -r requirements-dev.in
 platformdirs==4.3.6
@@ -98,6 +102,8 @@ py==1.11.0
     # via pytest
 pycodestyle==2.12.1
     # via flake8
+pycparser==2.22
+    # via cffi
 pyflakes==3.2.0
     # via flake8
 pygments==2.19.1
@@ -129,8 +135,8 @@ rich==13.9.4
     # via twine
 ruff==0.9.3
     # via -r requirements-dev.in
-setuptools==75.8.0
-    # via pip-tools
+secretstorage==3.3.3
+    # via keyring
 snowballstemmer==2.2.0
     # via sphinx
 sphinx==8.1.3
