@@ -671,9 +671,16 @@ class APRSDEmailThread(threads.APRSDThread):
 
             for msgid, data in _msgs.items():
                 envelope = data[b"ENVELOPE"]
+                if not envelope:
+                    LOG.error(f"Failed fetching email ENVELOPE")
+                    continue
+
+                subject = "Empty"
+                if envelope.subject:
+                    subject = envelope.subject.decode()
                 LOG.debug(
                     'ID:%d  "%s" (%s)'
-                    % (msgid, envelope.subject.decode(), envelope.date),
+                    % (msgid, subject, envelope.date),
                 )
                 f = re.search(
                     r"'([[A-a][0-9]_-]+@[[A-a][0-9]_-\.]+)",
