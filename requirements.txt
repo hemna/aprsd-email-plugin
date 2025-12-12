@@ -1,3 +1,0 @@
-aprsd>=4.0.2
-imapclient
-oslo_config

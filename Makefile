@@ -1,4 +1,4 @@
-REQUIREMENTS_TXT ?= requirements.txt requirements-dev.txt
+REQUIREMENTS_TXT ?= requirements.txt
 .DEFAULT_GOAL := help
 
 .PHONY: help dev test
@@ -71,8 +71,6 @@ fix: dev ## fixes code formatting with gray
 
 update-requirements: dev  ## Update the requirements.txt and dev-requirements.txt files
 	rm requirements.txt
-	rm requirements-dev.txt
 	touch requirements.txt
-	touch requirements-dev.txt
 	$(VENV)/pip-compile --resolver backtracking --annotation-style=line requirements.in
 	$(VENV)/pip-compile --resolver backtracking --annotation-style=line requirements-dev.in

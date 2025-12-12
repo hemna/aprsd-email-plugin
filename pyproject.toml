@@ -20,7 +20,14 @@ description = "APRSD Email plugin"
 # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
 requires-python = ">=3.10"
 
-dynamic = ["version", "dependencies", "optional-dependencies"]
+dynamic = ["version"]
+
+# Dependencies from requirements.in
+dependencies = [
+    "aprsd>=4.2.2",
+    "imapclient",
+    "oslo_config",
+]
 
 # This is an optional longer description of your project that represents
 # the body of text which users will see when they visit PyPI.
@@ -95,8 +102,6 @@ classifiers = [
 # For an analysis of this field vs pip's requirements files see:
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
 [tool.setuptools.dynamic]
-dependencies = {file = ["./requirements.txt"]}
-optional-dependencies.dev = {file = ["./requirements-dev.txt"]}
 
 # List additional groups of dependencies here (e.g. development
 # dependencies). Users will be able to install these using the "extras"
