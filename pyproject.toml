@@ -120,9 +120,10 @@ optional-dependencies.dev = {file = ["./requirements-dev.txt"]}
 # maintainers, and where to support the project financially. The key is
 # what's used to render the link text on PyPI.
 [project.urls]
-# "Homepage" = "https://github.com/hemna/aprsd-admin-extension"
-# "Bug Reports" = "https://github.com/hemna/aprsd-admin-extension/issues"
-# "Source" = "https://github.com/hemna/aprsd-admin-extension"
+"Homepage" = "https://github.com/hemna/aprsd-admin-extension"
+"Bug Reports" = "https://github.com/hemna/aprsd-admin-extension/issues"
+"Source" = "https://github.com/hemna/aprsd-admin-extension"
+Documentation = "https://aprsd-email-plugin.readthedocs.io/en/latest/"
 
 [project.entry-points."oslo.config.opts"]
     "aprsd_email_plugin.conf" = "aprsd_email_plugin.conf.opts:list_opts"

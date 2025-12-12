@@ -19,59 +19,239 @@
 
 ## Features
 
--   This is a plugin for the `APRSD` python project that allows a Ham radio operator to send and recieve email over APRS!
+The APRSD Email Plugin enables Ham radio operators to send and receive email over APRS! Key features include:
 
-
-### SEND EMAIL (radio to smtp server)
-
-    Received message______________
-    Raw         : KM6XXX>APY400,WIDE1-1,qAO,KM6XXX-1::KM6XXX-9 :-user@host.com test new shortcuts global, radio to pc{29
-    From        : KM6XXX
-    Message     : -user@host.com test new shortcuts global, radio to pc
-    Msg number  : 29
-
-    Sending Email_________________
-    To          : user@host.com
-    Subject     : KM6XXX
-    Body        : test new shortcuts global, radio to pc
-
-    Sending ack __________________ Tx(3)
-    Raw         : KM6XXX-9>APRS::KM6XXX   :ack29
-    To          : KM6XXX
-    Ack number  : 29
-
-### RECEIVE EMAIL (imap server to radio)
-
-    Sending message_______________ 6(Tx3)
-    Raw         : KM6XXX-9>APRS::KM6XXX   :-somebody@gmail.com email from internet to radio{6
-    To          : KM6XXX
-    Message     : -somebody@gmail.com email from internet to radio
-
-    Received message______________
-    Raw         : KM6XXX>APY400,WIDE1-1,qAO,KM6XXX-1::KM6XXX-9 :ack6
-    From        : KM6XXX
-    Message     : ack6
-    Msg number  : 0
-
+-   **Send Email via Radio**: Send emails from your radio by sending APRS messages
+-   **Receive Email via Radio**: Automatically receive new emails as APRS messages
+-   **Email Shortcuts**: Use short aliases instead of full email addresses
+-   **Automatic Email Checking**: Background thread periodically checks for new emails
+-   **Resend Recent Emails**: Request recent emails to be resent via APRS
+-   **Smart Rate Limiting**: Prevents duplicate email sends within 5 minutes
+-   **IMAP/SMTP Support**: Works with any IMAP/SMTP server (Gmail, Outlook, etc.)
 
 ## Requirements
 
--   APRSD
+-   `aprsd >= 4.0.2`
+-   A running APRSD instance
+-   Access to an IMAP server for receiving email
+-   Access to an SMTP server for sending email
 
 ## Installation
 
-You can install *Aprsd Email plugin* via [pip](https://pip.pypa.io/)
-from [PyPI](https://pypi.org/):
+You can install *APRSD Email Plugin* via [pip](https://pip.pypa.io/) from [PyPI](https://pypi.org/):
 
 ``` console
 $ pip install aprsd-email-plugin
 ```
 
+Or using `uv`:
+
+``` console
+$ uv pip install aprsd-email-plugin
+```
+
+## Configuration
+
+Before using the email plugin, you need to configure it in your APRSD configuration file.
+Generate a sample configuration file if you haven't already:
+
+``` console
+$ aprsd sample-config
+```
+
+This will create a configuration file at `~/.config/aprsd/aprsd.conf` (or `aprsd.yml`).
+
+### Email Plugin Configuration
+
+Add the following section to your APRSD configuration file to configure the email plugin:
+
+``` yaml
+[aprsd_email_plugin]
+# Enable the Email plugin (default: False)
+enabled = True
+
+# (Required) Callsign authorized to send/receive email commands
+# This is also where email notifications for new emails will be sent
+callsign = YOURCALL
+
+# Enable debug logging for email operations (default: False)
+debug = False
+
+# IMAP Configuration (for receiving email)
+imap_host = imap.gmail.com
+imap_port = 993
+imap_use_ssl = True
+imap_login = your-email@gmail.com
+imap_password = your-app-password
+
+# SMTP Configuration (for sending email)
+smtp_host = smtp.gmail.com
+smtp_port = 465
+smtp_use_ssl = True
+smtp_login = your-email@gmail.com
+smtp_password = your-app-password
+
+# Email shortcuts (optional)
+# Format: shortcut=email@address.com,shortcut2=email2@address.com
+email_shortcuts = wb=walt@example.com,cl=cl@example.com
+```
+
+### Gmail Configuration Example
+
+For Gmail, you'll need to use an [App Password](https://support.google.com/accounts/answer/185833) instead of your regular password:
+
+``` yaml
+[aprsd_email_plugin]
+enabled = True
+callsign = YOURCALL
+debug = False
+
+# Gmail IMAP settings
+imap_host = imap.gmail.com
+imap_port = 993
+imap_use_ssl = True
+imap_login = yourname@gmail.com
+imap_password = your-16-char-app-password
+
+# Gmail SMTP settings
+smtp_host = smtp.gmail.com
+smtp_port = 465
+smtp_use_ssl = True
+smtp_login = yourname@gmail.com
+smtp_password = your-16-char-app-password
+
+# Optional shortcuts
+email_shortcuts = mom=mom@gmail.com,dad=dad@gmail.com
+```
+
+### Other Email Providers
+
+**Outlook/Hotmail:**
+``` yaml
+imap_host = outlook.office365.com
+imap_port = 993
+smtp_host = smtp.office365.com
+smtp_port = 587
+smtp_use_ssl = False  # Use STARTTLS instead
+```
+
+**Yahoo:**
+``` yaml
+imap_host = imap.mail.yahoo.com
+imap_port = 993
+smtp_host = smtp.mail.yahoo.com
+smtp_port = 465
+```
+
 ## Usage
 
-Please see the [Command-line
-Reference](https://aprsd-email-plugin.readthedocs.io/en/latest/usage.html)
-for details.
+Once installed and configured, the email plugin will automatically start when you run `aprsd server`.
+
+### Sending Email (Radio to Email)
+
+To send an email from your radio, send an APRS message to your callsign with the format:
+
+```
+-email@address.com Your message here
+```
+
+**Examples:**
+-   `-user@example.com Hello from my radio!`
+-   `-mom@gmail.com Running late, be home soon`
+-   If you have shortcuts configured: `-wb Meeting at 2pm` (sends to walt@example.com)
+
+**Special Command - Send Location:**
+```
+-email@address.com mapme
+```
+This sends a link to your current location on aprs.fi.
+
+### Receiving Email (Email to Radio)
+
+The plugin automatically checks your IMAP inbox for new emails and forwards them to your radio as APRS messages. The format is:
+
+```
+-sender@address.com Email body content here
+```
+
+The plugin:
+-   Checks for new emails periodically (starts at 60 seconds, increases to 300 seconds max)
+-   Only forwards emails that haven't been sent via APRS before (marked with "APRS" flag)
+-   Automatically increases check frequency when email activity occurs
+
+### Resending Recent Emails
+
+To request the most recent emails to be resent:
+
+```
+-1  # Resend 1 most recent email
+-2  # Resend 2 most recent emails
+-3  # Resend 3 most recent emails
+```
+
+The plugin will resend emails received today, with an asterisk (*) indicating it's a resend.
+
+### Email Shortcuts
+
+Email shortcuts allow you to use short aliases instead of full email addresses:
+
+**Configuration:**
+``` yaml
+email_shortcuts = wb=walt@example.com,cl=cl@example.com,mom=mom@gmail.com
+```
+
+**Usage:**
+-   Send to shortcut: `-wb Meeting at 2pm` (sends to walt@example.com)
+-   Receive from shortcut: If you receive email from walt@example.com, it will show as `-wb` in the APRS message
+
+### Verifying It's Working
+
+After starting APRSD, check the logs for messages like:
+
+```
+INFO: Email shortcuts {'wb': 'walt@example.com', 'cl': 'cl@example.com'}
+INFO: Checking IMAP configuration
+INFO: Checking SMTP configuration
+```
+
+If configuration is valid, you'll see:
+```
+INFO: Email services enabled
+```
+
+To test sending email:
+1.  Send yourself an APRS message: `-your-email@gmail.com Test message`
+2.  Check your email inbox for the message
+
+To test receiving email:
+1.  Send an email to your configured email address
+2.  Wait up to 60 seconds (or trigger a check by sending an email command)
+3.  You should receive the email as an APRS message
+
+### Troubleshooting
+
+**Plugin not enabled:**
+-   Check that `enabled = True` in your config
+-   Verify `callsign` is set correctly
+-   Check logs for configuration errors
+
+**Cannot connect to IMAP/SMTP:**
+-   Verify host, port, and SSL settings are correct
+-   For Gmail, ensure you're using an App Password, not your regular password
+-   Check firewall settings
+-   Enable `debug = True` for detailed connection logs
+
+**Emails not being received:**
+-   Check that emails are arriving in your inbox (not spam)
+-   Verify IMAP credentials are correct
+-   Check logs for IMAP connection errors
+-   Ensure the plugin has permission to access your inbox
+
+**Duplicate emails:**
+-   The plugin prevents sending the same email within 5 minutes
+-   If you need to resend, wait 5 minutes or use the resend command (`-1`, `-2`, etc.)
+
+For more details, see the [Command-line Reference](https://aprsd-email-plugin.readthedocs.io/en/latest/usage.html).
 
 ## Contributing
 
