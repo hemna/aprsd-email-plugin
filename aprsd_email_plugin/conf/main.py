@@ -1,6 +1,5 @@
 from oslo_config import cfg
 
-
 plugin_group = cfg.OptGroup(
     name="aprsd_email_plugin",
     title="APRSD Slack Plugin settings",
@@ -10,8 +9,8 @@ email_opts = [
     cfg.StrOpt(
         "callsign",
         help="(Required) Callsign to validate for doing email commands."
-             "Only this callsign can check email. This is also where the "
-             "email notifications for new emails will be sent.",
+        "Only this callsign can check email. This is also where the "
+        "email notifications for new emails will be sent.",
     ),
     cfg.BoolOpt(
         "enabled",
@@ -81,17 +80,12 @@ email_shortcuts_opts = [
     cfg.ListOpt(
         "email_shortcuts",
         help="List of email shortcuts for checking/sending email "
-             "For Exmaple: wb=walt@walt.com,cl=cl@cl.com\n"
-             "Means use 'wb' to send an email to walt@walt.com",
+        "For Exmaple: wb=walt@walt.com,cl=cl@cl.com\n"
+        "Means use 'wb' to send an email to walt@walt.com",
     ),
 ]
 
-ALL_OPTS = (
-    email_opts
-    + email_imap_opts
-    + email_smtp_opts
-    + email_shortcuts_opts
-)
+ALL_OPTS = email_opts + email_imap_opts + email_smtp_opts + email_shortcuts_opts
 
 
 def register_opts(cfg):

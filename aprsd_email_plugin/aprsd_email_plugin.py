@@ -104,7 +104,7 @@ class EmailStats:
             email_stats = stats_json["EmailStats"]
             if email_stats.get("last_check_time"):
                 email_thread_time = utils.strfdelta(
-                    now - email_stats["last_check_time"]
+                    now - email_stats["last_check_time"],
                 )
             else:
                 email_thread_time = "N/A"
@@ -228,9 +228,7 @@ class EmailPlugin(plugin.APRSDRegexCommandPluginBase):
 
                     # send recipient link to aprs.fi map
                     if content == "mapme":
-                        content = (
-                            "Click for my location: http://aprs.fi/{}" ""
-                        ).format(
+                        content = ("Click for my location: http://aprs.fi/{}").format(
                             CONF.aprsd_email_plugin.callsign,
                         )
                     too_soon = 0
@@ -311,7 +309,7 @@ def _smtp_connect():
     host = CONF.aprsd_email_plugin.smtp_host
     smtp_port = CONF.aprsd_email_plugin.smtp_port
     use_ssl = CONF.aprsd_email_plugin.smtp_use_ssl
-    msg = f'{"SSL " if use_ssl else ""}{host}:{smtp_port}'
+    msg = f"{'SSL ' if use_ssl else ''}{host}:{smtp_port}"
     LOG.debug(
         f"Connect to SMTP host {msg} with user '{CONF.aprsd_email_plugin.smtp_login}'",
     )
@@ -672,15 +670,14 @@ class APRSDEmailThread(threads.APRSDThread):
             for msgid, data in _msgs.items():
                 envelope = data[b"ENVELOPE"]
                 if not envelope:
-                    LOG.error(f"Failed fetching email ENVELOPE")
+                    LOG.error("Failed fetching email ENVELOPE")
                     continue
 
                 subject = "Empty"
                 if envelope.subject:
                     subject = envelope.subject.decode()
                 LOG.debug(
-                    'ID:%d  "%s" (%s)'
-                    % (msgid, subject, envelope.date),
+                    'ID:%d  "%s" (%s)' % (msgid, subject, envelope.date),
                 )
                 f = re.search(
                     r"'([[A-a][0-9]_-]+@[[A-a][0-9]_-\.]+)",
