@@ -89,9 +89,6 @@ classifiers = [
     "Topic :: Internet",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
 
@@ -146,7 +143,7 @@ packages = ["aprsd_email_plugin"]
 
 [build-system]
 requires = [
-    "setuptools>=69.5.0",
+    "setuptools>=80.10.0",
     "setuptools_scm>=0",
     "wheel",
 ]
