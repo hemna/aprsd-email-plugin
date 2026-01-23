@@ -133,6 +133,9 @@ Documentation = "https://aprsd-email-plugin.readthedocs.io/en/latest/"
 [project.entry-points."oslo.config.opts"]
     "aprsd_email_plugin.conf" = "aprsd_email_plugin.conf.opts:list_opts"
 
+[project.scripts]
+    "aprsd-email-plugin-export-config" = "aprsd_email_plugin.cli:main"
+
 # If you are using a different build backend, you will need to change this.
 [tool.setuptools]
 # If there are data files included in your packages that need to be
