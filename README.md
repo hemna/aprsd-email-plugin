@@ -204,6 +204,177 @@ email_shortcuts = wb=walt@example.com,cl=cl@example.com,mom=mom@gmail.com
 -   Send to shortcut: `-wb Meeting at 2pm` (sends to walt@example.com)
 -   Receive from shortcut: If you receive email from walt@example.com, it will show as `-wb` in the APRS message
 
+## Example Interactions
+
+Here are some real-world examples of how the email plugin works:
+
+### Example 1: Sending an Email from Your Radio
+
+**Scenario:** You're on a hike and want to let your family know you're doing well.
+
+**On your radio:**
+```
+Send message to: YOURCALL
+Message: -mom@gmail.com Having a great time on the trail! Weather is perfect.
+```
+
+**Result:** Your mom receives an email with:
+- **Subject:** YOURCALL
+- **Body:** Having a great time on the trail! Weather is perfect.
+
+**On your radio (response):**
+```
+(No response message - email sent successfully)
+```
+
+### Example 2: Receiving an Email on Your Radio
+
+**Scenario:** Someone sends you an email while you're out in the field.
+
+**Email sent to your inbox:**
+- **From:** friend@example.com
+- **Subject:** Meeting reminder
+- **Body:** Don't forget about the club meeting tonight at 7pm!
+
+**On your radio (automatic, within 60 seconds):**
+```
+Message from: YOURCALL
+Message: -friend@example.com Don't forget about the club meeting tonight at 7pm!
+```
+
+### Example 3: Using Email Shortcuts
+
+**Configuration:**
+``` yaml
+email_shortcuts = mom=mom@gmail.com,dad=dad@gmail.com,wb=walt@example.com
+```
+
+**Sending with shortcut:**
+```
+Send message to: YOURCALL
+Message: -wb Can you check the weather forecast?
+```
+
+**Result:** Email sent to walt@example.com
+
+**Receiving with shortcut:**
+If walt@example.com sends you an email, you'll see:
+```
+Message from: YOURCALL
+Message: -wb The forecast looks good for tomorrow!
+```
+
+### Example 4: Sending Your Location
+
+**Scenario:** You want to share your current location via email.
+
+**On your radio:**
+```
+Send message to: YOURCALL
+Message: -friend@example.com mapme
+```
+
+**Result:** Friend receives an email with:
+- **Subject:** YOURCALL
+- **Body:** Click for my location: http://aprs.fi/YOURCALL
+
+### Example 5: Resending Recent Emails
+
+**Scenario:** You missed some emails and want to see the last 2 that were sent.
+
+**On your radio:**
+```
+Send message to: YOURCALL
+Message: -2
+```
+
+**Result:** You receive the 2 most recent emails from today:
+```
+Message from: YOURCALL
+Message: -friend@example.com * First email content here
+
+Message from: YOURCALL
+Message: -mom@gmail.com * Second email content here
+```
+
+Note: The asterisk (*) indicates these are resent emails.
+
+### Example 6: Error Handling
+
+**Scenario:** You try to send an email but the SMTP server is down.
+
+**On your radio:**
+```
+Send message to: YOURCALL
+Message: -user@example.com Test message
+```
+
+**On your radio (response):**
+```
+Message from: YOURCALL
+Message: -user@example.com failed
+```
+
+**Scenario:** You use an invalid email address or shortcut.
+
+**On your radio:**
+```
+Send message to: YOURCALL
+Message: -invalid-address Hello
+```
+
+**On your radio (response):**
+```
+Message from: YOURCALL
+Message: Bad email address
+```
+
+### Example 7: Rate Limiting
+
+**Scenario:** You accidentally send the same message twice within 5 minutes.
+
+**First attempt:**
+```
+Send message to: YOURCALL
+Message: -mom@gmail.com Running late
+```
+**Result:** Email sent successfully
+
+**Second attempt (within 5 minutes):**
+```
+Send message to: YOURCALL
+Message: -mom@gmail.com Running late
+```
+**Result:** Email not sent (duplicate prevention active)
+**On your radio:** (No response - message silently ignored)
+
+**After 5 minutes:**
+The same message can be sent again if needed.
+
+### Example 8: Complete Conversation Flow
+
+**Morning - You send an email:**
+```
+You (radio): -mom@gmail.com Heading out for the day, will check in later
+```
+
+**Afternoon - Mom replies via email:**
+```
+Email from mom@gmail.com: "Sounds good! Be safe!"
+```
+
+**You receive on radio (automatic):**
+```
+YOURCALL: -mom@gmail.com Sounds good! Be safe!
+```
+
+**Evening - You send location:**
+```
+You (radio): -mom@gmail.com mapme
+```
+
+**Mom receives email with link to your location on aprs.fi**
+
 ### Verifying It's Working
 
 After starting APRSD, check the logs for messages like:
