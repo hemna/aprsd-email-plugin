@@ -18,13 +18,12 @@ description = "APRSD Email plugin"
 # 'Programming Language' classifiers in this file, 'pip install' will check this
 # and refuse to install the project if the version does not match. See
 # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 dynamic = ["version"]
 
 # Dependencies from requirements.in
 dependencies = [
-    "aprsd>=4.2.2",
     "imapclient",
     "oslo_config",
 ]
@@ -130,6 +129,9 @@ Documentation = "https://aprsd-email-plugin.readthedocs.io/en/latest/"
 [project.entry-points."oslo.config.opts"]
     "aprsd_email_plugin.conf" = "aprsd_email_plugin.conf.opts:list_opts"
 
+[project.entry-points."aprsd.plugin.readme"]
+    "aprsd_email_plugin" = "aprsd_email_plugin:get_readme"
+
 [project.scripts]
     "aprsd-email-plugin-export-config" = "aprsd_email_plugin.cli:main"
 
@@ -138,7 +140,7 @@ Documentation = "https://aprsd-email-plugin.readthedocs.io/en/latest/"
 # If there are data files included in your packages that need to be
 # installed, specify them here.
 py-modules = ["aprsd_email_plugin"]
-package-data = {"sample" = ["*.dat"]}
+package-data = {"aprsd_email_plugin" = ["README.md"]}
 packages = ["aprsd_email_plugin"]
 
 [build-system]
